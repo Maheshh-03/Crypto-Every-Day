@@ -1,0 +1,716 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CryptoVault — Get Free Crypto</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --neon:#00f5c4;--neon-dim:rgba(0,245,196,.15);--neon-glow:0 0 18px rgba(0,245,196,.55);
+      --gold:#f5c518;--dark:#050d18;--card-bg:rgba(10,22,40,.92);--border:rgba(0,245,196,.2);
+      --red:#ff4d6d;
+    }
+    *,*::before,*::after{box-sizing:border-box}
+    body{font-family:'DM Sans',sans-serif;background:var(--dark);min-height:100vh;overflow-x:hidden;color:#cde}
+
+    /* BG */
+    .bg-wrap{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 120% 80% at 60% 30%,#001a35 0%,#050d18 70%)}
+    .bg-wrap::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Ccircle cx='50' cy='80' r='1' fill='%2300f5c4' opacity='.4'/%3E%3Ccircle cx='120' cy='30' r='.7' fill='%23fff' opacity='.3'/%3E%3Ccircle cx='300' cy='60' r='1.2' fill='%2300f5c4' opacity='.25'/%3E%3Ccircle cx='350' cy='200' r='.8' fill='%23fff' opacity='.2'/%3E%3Ccircle cx='200' cy='350' r='1' fill='%2300f5c4' opacity='.3'/%3E%3Ccircle cx='80' cy='320' r='.6' fill='%23fff' opacity='.25'/%3E%3Ccircle cx='370' cy='370' r='1.5' fill='%23f5c518' opacity='.2'/%3E%3Ccircle cx='160' cy='160' r='.7' fill='%23fff' opacity='.15'/%3E%3C/svg%3E") repeat;opacity:.7;animation:drift 60s linear infinite}
+    @keyframes drift{to{background-position:400px 400px}}
+    .bg-wrap::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(0,245,196,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,196,.04) 1px,transparent 1px);background-size:60px 60px}
+
+    /* Pages */
+    .page{position:relative;z-index:1;display:none}
+    .page.active{display:flex}
+    #page-auth{min-height:100vh;align-items:stretch}
+    #page-dashboard{min-height:100vh;align-items:center;justify-content:center;padding:40px 20px;flex-direction:column}
+    #page-forgot{min-height:100vh;align-items:center;justify-content:center;padding:40px 20px}
+
+    /* Left panel */
+    .left-panel{background:linear-gradient(135deg,#001025 0%,#00150f 100%);border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:60px 50px;position:relative;overflow:hidden}
+    .left-panel::before{content:'';position:absolute;top:-80px;right:-80px;width:380px;height:380px;background:radial-gradient(circle,rgba(0,245,196,.12) 0%,transparent 70%)}
+    .left-panel::after{content:'';position:absolute;bottom:-60px;left:-60px;width:280px;height:280px;background:radial-gradient(circle,rgba(245,197,24,.07) 0%,transparent 70%)}
+    .brand-logo{font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:900;color:var(--neon);letter-spacing:.08em;text-shadow:var(--neon-glow);margin-bottom:2.5rem;cursor:pointer}
+    .brand-logo span{color:var(--gold)}
+    .hero-title{font-family:'Orbitron',monospace;font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:900;line-height:1.15;color:#fff;margin-bottom:1rem}
+    .hero-title .accent{color:var(--neon)}
+    .hero-sub{font-size:1rem;color:rgba(180,220,220,.7);max-width:360px;line-height:1.7;margin-bottom:2.5rem}
+    .coin-badges{display:flex;gap:12px;flex-wrap:wrap}
+    .coin-badge{display:flex;align-items:center;gap:7px;background:rgba(0,245,196,.07);border:1px solid rgba(0,245,196,.18);border-radius:50px;padding:6px 16px;font-size:.8rem;font-family:'Orbitron',monospace;letter-spacing:.05em;transition:all .3s;cursor:pointer;user-select:none}
+    .coin-badge:hover{background:rgba(0,245,196,.15);border-color:var(--neon);transform:translateY(-2px)}
+    .coin-badge.selected{background:rgba(0,245,196,.25);border-color:var(--neon);box-shadow:0 0 10px rgba(0,245,196,.3)}
+    .reward-ticker{margin-top:2.5rem;background:rgba(0,245,196,.06);border:1px solid rgba(0,245,196,.15);border-radius:10px;padding:14px 20px;display:flex;align-items:center;gap:12px;max-width:360px}
+    .ticker-dot{width:8px;height:8px;border-radius:50%;background:var(--neon);box-shadow:0 0 8px var(--neon);animation:pulse 1.5s infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.7)}}
+    .ticker-text{font-size:.82rem;color:rgba(200,240,230,.8)}
+    .ticker-text strong{color:var(--neon)}
+    .check-row{display:flex;align-items:center;gap:8px;margin-bottom:.55rem;font-size:.8rem;color:rgba(180,220,210,.6)}
+    .check-icon{color:var(--neon);font-size:.85rem;flex-shrink:0}
+
+    /* Right panel */
+    .right-panel{display:flex;align-items:center;justify-content:center;padding:50px 30px}
+    .auth-card{background:var(--card-bg);border:1px solid var(--border);border-radius:20px;padding:44px 40px;width:100%;max-width:420px;backdrop-filter:blur(18px);box-shadow:0 24px 60px rgba(0,0,0,.55),0 0 0 1px rgba(0,245,196,.05);animation:cardIn .6s ease both}
+    @keyframes cardIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+    .card-eyebrow{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--neon);font-family:'Orbitron',monospace;margin-bottom:.6rem}
+    .auth-card h2{font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:700;color:#fff;margin-bottom:.3rem}
+    .sub-note{font-size:.82rem;color:rgba(180,200,210,.6);margin-bottom:1.8rem}
+
+    /* Form elements */
+    .form-label{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:rgba(180,220,220,.6);margin-bottom:.4rem}
+    .form-control{background:rgba(0,245,196,.04)!important;border:1px solid rgba(0,245,196,.18)!important;border-radius:10px!important;color:#e0f4f0!important;font-size:.92rem;padding:.65rem 1rem;transition:all .25s}
+    .form-control::placeholder{color:rgba(180,220,210,.3)!important}
+    .form-control:focus{border-color:var(--neon)!important;box-shadow:0 0 0 3px rgba(0,245,196,.12)!important;background:rgba(0,245,196,.07)!important}
+    .form-control.is-invalid{border-color:var(--red)!important;box-shadow:0 0 0 3px rgba(255,77,109,.12)!important}
+    .form-control.is-valid{border-color:var(--neon)!important}
+    .field-error{color:var(--red);font-size:.73rem;margin-top:3px;display:none}
+    .input-group-text{background:rgba(0,245,196,.07)!important;border:1px solid rgba(0,245,196,.18)!important;border-right:none!important;color:var(--neon)!important;border-radius:10px 0 0 10px!important}
+    .input-group .form-control{border-left:none!important;border-radius:0 10px 10px 0!important}
+    .pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:rgba(0,245,196,.5);font-size:.9rem;background:none;border:none;z-index:10}
+    .pw-toggle:hover{color:var(--neon)}
+
+    /* Strength */
+    .strength-meter{margin-top:5px;display:none}
+    .strength-bar{height:3px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden}
+    .strength-fill{height:100%;width:0;border-radius:3px;transition:width .4s,background .4s}
+    .strength-label{font-size:.7rem;margin-top:3px;color:rgba(180,220,210,.5)}
+
+    .bonus-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(90deg,rgba(245,197,24,.12),rgba(245,197,24,.05));border:1px solid rgba(245,197,24,.25);border-radius:8px;padding:8px 14px;font-size:.82rem;color:var(--gold);margin-bottom:1.4rem;width:100%}
+    .btn-neon{background:linear-gradient(135deg,#00d4a8,#00f5c4);border:none;color:#021c14;font-family:'Orbitron',monospace;font-size:.88rem;font-weight:700;letter-spacing:.08em;border-radius:10px;padding:.75rem 1rem;width:100%;transition:all .3s;box-shadow:0 4px 20px rgba(0,245,196,.3);position:relative;overflow:hidden;cursor:pointer}
+    .btn-neon:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,245,196,.45)}
+    .btn-neon:active:not(:disabled){transform:translateY(0)}
+    .btn-neon:disabled{opacity:.6;cursor:not-allowed}
+    .btn-neon .spinner-border{display:none;width:18px;height:18px;border-width:2px;color:#021c14;margin:0 auto}
+    .btn-neon.loading .btn-text{display:none}
+    .btn-neon.loading .spinner-border{display:block}
+    .or-divider{display:flex;align-items:center;gap:12px;color:rgba(180,200,210,.3);font-size:.78rem;margin:1.2rem 0}
+    .or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:rgba(0,245,196,.1)}
+    .btn-social{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:#cde;border-radius:10px;padding:.6rem;font-size:.82rem;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+    .btn-social:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.2);color:#fff;transform:translateY(-1px)}
+    .footer-link{font-size:.8rem;color:rgba(180,200,210,.5);text-align:center;margin-top:1.4rem}
+    .footer-link a{color:var(--neon);text-decoration:none}
+    .footer-link a:hover{text-decoration:underline}
+    .tab-switch{display:flex;background:rgba(0,245,196,.05);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:1.6rem}
+    .tab-btn{flex:1;background:none;border:none;color:rgba(180,220,210,.5);font-family:'Orbitron',monospace;font-size:.72rem;letter-spacing:.06em;padding:.5rem;border-radius:7px;transition:all .25s;cursor:pointer}
+    .tab-btn.active{background:var(--neon);color:#021c14;font-weight:700;box-shadow:var(--neon-glow)}
+    .form-panel{display:none}
+    .form-panel.active{display:block}
+
+    /* Toast */
+    .toast-container-custom{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px}
+    .toast-msg{background:rgba(10,22,40,.96);border:1px solid rgba(0,245,196,.25);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:10px;min-width:280px;max-width:340px;backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,.5);animation:toastIn .35s ease both;font-size:.85rem}
+    .toast-msg.removing{animation:toastOut .3s ease forwards}
+    @keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+    @keyframes toastOut{to{opacity:0;transform:translateX(40px)}}
+    .toast-msg.success{border-color:rgba(0,245,196,.45)}
+    .toast-msg.error{border-color:rgba(255,77,109,.45)}
+    .toast-msg.info{border-color:rgba(245,197,24,.35)}
+    .toast-close{margin-left:auto;background:none;border:none;color:rgba(180,200,210,.4);cursor:pointer;font-size:.9rem;padding:0 0 0 8px}
+    .toast-close:hover{color:#fff}
+
+    /* Modal */
+    .modal-overlay{display:none;position:fixed;inset:0;z-index:9998;align-items:center;justify-content:center;background:rgba(5,13,24,.85);backdrop-filter:blur(6px)}
+    .modal-overlay.show{display:flex}
+    .modal-box{background:rgba(10,22,40,.97);border:1px solid var(--border);border-radius:20px;padding:36px 32px;width:90%;max-width:480px;max-height:80vh;overflow-y:auto;animation:cardIn .35s ease both;position:relative}
+    .modal-box h3{font-family:'Orbitron',monospace;color:var(--neon);font-size:1.1rem;margin-bottom:1rem}
+    .modal-box p{font-size:.85rem;color:rgba(180,200,210,.7);line-height:1.7;margin-bottom:.8rem}
+    .modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:rgba(180,200,210,.4);font-size:1.2rem;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s}
+    .modal-close:hover{background:rgba(255,255,255,.08);color:#fff}
+
+    /* Forgot */
+    .forgot-card{background:var(--card-bg);border:1px solid var(--border);border-radius:20px;padding:44px 40px;width:90%;max-width:420px;backdrop-filter:blur(18px);box-shadow:0 24px 60px rgba(0,0,0,.55);animation:cardIn .6s ease both}
+    .back-link{color:var(--neon);text-decoration:none;font-size:.82rem;display:inline-flex;align-items:center;gap:6px;margin-bottom:1.5rem;cursor:pointer;background:none;border:none;padding:0}
+    .back-link:hover{text-decoration:underline;color:var(--neon)}
+
+    /* Dashboard */
+    .dashboard-wrap{width:100%;max-width:860px;animation:cardIn .6s ease both}
+    .dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:12px}
+    .dash-logo{font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:900;color:var(--neon);text-shadow:var(--neon-glow)}
+    .dash-logo span{color:var(--gold)}
+    .dash-user{display:flex;align-items:center;gap:10px}
+    .dash-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--neon),#005f4b);display:flex;align-items:center;justify-content:center;font-weight:700;color:#021c14;font-size:.85rem;cursor:pointer;transition:transform .2s}
+    .dash-avatar:hover{transform:scale(1.1)}
+    .btn-logout{background:none;border:1px solid rgba(255,77,109,.3);color:rgba(255,77,109,.7);border-radius:8px;padding:5px 14px;font-size:.78rem;cursor:pointer;transition:all .25s}
+    .btn-logout:hover{background:rgba(255,77,109,.08);border-color:var(--red);color:var(--red)}
+    .dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:2rem}
+    .dash-card{background:rgba(10,22,40,.7);border:1px solid rgba(0,245,196,.12);border-radius:16px;padding:22px 20px;transition:all .3s;cursor:pointer}
+    .dash-card:hover{border-color:rgba(0,245,196,.3);transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.3)}
+    .dash-card-label{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(180,200,210,.45);margin-bottom:.5rem}
+    .dash-card-value{font-family:'Orbitron',monospace;font-size:1.45rem;font-weight:700;color:#fff}
+    .dash-card-value .unit{font-size:.7rem;color:rgba(180,200,210,.4);margin-left:4px}
+    .dash-card-change{font-size:.75rem;margin-top:.3rem}
+    .dash-card-change.up{color:#00f5c4}
+    .dash-card-change.gold{color:var(--gold)}
+    .claim-section{background:linear-gradient(135deg,rgba(0,245,196,.07),rgba(0,100,70,.05));border:1px solid rgba(0,245,196,.2);border-radius:16px;padding:28px;margin-bottom:2rem;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+    .claim-info h4{font-family:'Orbitron',monospace;color:#fff;font-size:1rem;margin-bottom:.4rem}
+    .claim-info p{font-size:.82rem;color:rgba(180,200,210,.6);margin:0}
+    .btn-claim{background:linear-gradient(135deg,var(--gold),#e5a800);border:none;color:#0a0800;font-family:'Orbitron',monospace;font-size:.82rem;font-weight:700;letter-spacing:.06em;border-radius:10px;padding:.65rem 1.5rem;cursor:pointer;transition:all .3s;white-space:nowrap;box-shadow:0 4px 20px rgba(245,197,24,.3);position:relative}
+    .btn-claim:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 28px rgba(245,197,24,.45)}
+    .btn-claim:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    .tx-table{background:rgba(10,22,40,.7);border:1px solid rgba(0,245,196,.1);border-radius:16px;overflow:hidden}
+    .tx-header{padding:18px 22px;border-bottom:1px solid rgba(0,245,196,.08)}
+    .tx-header h5{font-family:'Orbitron',monospace;color:#fff;font-size:.88rem;margin:0}
+    .tx-row{display:flex;align-items:center;padding:14px 22px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;cursor:pointer}
+    .tx-row:last-child{border-bottom:none}
+    .tx-row:hover{background:rgba(0,245,196,.03)}
+    .tx-icon{width:34px;height:34px;border-radius:10px;background:rgba(0,245,196,.08);display:flex;align-items:center;justify-content:center;font-size:.95rem;margin-right:12px;flex-shrink:0}
+    .tx-desc{flex:1}
+    .tx-name{font-size:.85rem;color:#e0f4f0}
+    .tx-time{font-size:.72rem;color:rgba(180,200,210,.4)}
+    .tx-amount{font-family:'Orbitron',monospace;font-size:.85rem}
+    .tx-amount.pos{color:var(--neon)}
+    .tx-amount.neg{color:var(--red)}
+    .refer-box{background:rgba(245,197,24,.05);border:1px solid rgba(245,197,24,.15);border-radius:16px;padding:22px;margin-top:1.5rem;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+    .refer-code{font-family:'Orbitron',monospace;font-size:.9rem;color:var(--gold);background:rgba(245,197,24,.1);border:1px solid rgba(245,197,24,.2);border-radius:8px;padding:8px 16px;letter-spacing:.1em;cursor:pointer;transition:all .2s;user-select:none}
+    .refer-code:hover{background:rgba(245,197,24,.2)}
+
+    @media(max-width:767px){
+      .left-panel{padding:40px 24px 30px;border-right:none;border-bottom:1px solid var(--border)}
+      .auth-card,.forgot-card{padding:30px 22px}
+      .hero-title{font-size:1.7rem}
+      .claim-section{flex-direction:column;align-items:flex-start}
+    }
+  </style>
+</head>
+<body>
+<div class="bg-wrap"></div>
+<div class="toast-container-custom" id="toastContainer"></div>
+
+<!-- ═══════════════ AUTH PAGE ═══════════════ -->
+<div class="page active container-fluid p-0" id="page-auth">
+  <div class="row g-0 min-vh-100">
+
+    <!-- LEFT -->
+    <div class="col-lg-6 left-panel">
+      <div class="brand-logo" onclick="toast('Welcome to CryptoVault! 🔥','info')">CRYPTO<span>VAULT</span></div>
+      <h1 class="hero-title">Earn Free Crypto<br>Every <span class="accent">Day.</span></h1>
+      <p class="hero-sub">Join 2.4 million users claiming daily crypto rewards. Sign up in 60 seconds and start earning instantly — no experience needed.</p>
+
+      <div class="coin-badges">
+        <div class="coin-badge" data-coin="BTC" onclick="selectCoin(this)"><span>₿</span> Bitcoin</div>
+        <div class="coin-badge" data-coin="ETH" onclick="selectCoin(this)"><span>Ξ</span> Ethereum</div>
+        <div class="coin-badge" data-coin="SOL" onclick="selectCoin(this)"><span>◎</span> Solana</div>
+        <div class="coin-badge" data-coin="USDT" onclick="selectCoin(this)"><span>✦</span> USDT</div>
+      </div>
+
+      <div class="reward-ticker">
+        <div class="ticker-dot"></div>
+        <div class="ticker-text" id="tickerText"><strong>$12.40 in BTC</strong> claimed by <strong>user_x9f2**</strong> · 2s ago</div>
+      </div>
+
+      <div class="mt-4">
+        <div class="check-row"><span class="check-icon">✓</span> Zero fees on withdrawals under $50</div>
+        <div class="check-row"><span class="check-icon">✓</span> Daily faucet rewards up to $25</div>
+        <div class="check-row"><span class="check-icon">✓</span> Refer friends &amp; earn 20% commission</div>
+        <div class="check-row"><span class="check-icon">✓</span> Bank-grade 256-bit encryption</div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="col-lg-6 right-panel">
+      <div class="auth-card">
+        <div class="card-eyebrow">🎁 Limited Time Offer</div>
+        <h2>Claim Your Free Crypto</h2>
+        <p class="sub-note">New accounts receive <strong style="color:var(--neon)">$10 in BTC</strong> instantly on signup.</p>
+
+        <div class="tab-switch">
+          <button class="tab-btn active" id="tab-signup" onclick="switchTab('signup')">Create Account</button>
+          <button class="tab-btn" id="tab-login" onclick="switchTab('login')">Sign In</button>
+        </div>
+
+        <!-- SIGNUP PANEL -->
+        <div class="form-panel active" id="panel-signup">
+          <div class="bonus-badge">🏆 <span>Bonus: Earn <strong>+$10 BTC</strong> free when you verify email</span></div>
+
+          <div class="mb-3">
+            <label class="form-label">Full Name</label>
+            <div class="input-group">
+              <span class="input-group-text">👤</span>
+              <input type="text" class="form-control" id="su-name" placeholder="Satoshi Nakamoto" oninput="lv(this,'name')">
+            </div>
+            <div class="field-error" id="fe-su-name">Please enter your full name (min 2 chars).</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Email Address</label>
+            <div class="input-group">
+              <span class="input-group-text">✉</span>
+              <input type="email" class="form-control" id="su-email" placeholder="satoshi@crypto.com" oninput="lv(this,'email')">
+            </div>
+            <div class="field-error" id="fe-su-email">Please enter a valid email address.</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <div class="input-group position-relative">
+              <span class="input-group-text">🔒</span>
+              <input type="password" class="form-control" id="su-pw" placeholder="Min. 8 characters" oninput="lv(this,'pw'); pwStrength(this.value)">
+              <button class="pw-toggle" type="button" onclick="togglePw('su-pw',this)">👁</button>
+            </div>
+            <div class="strength-meter" id="sm">
+              <div class="strength-bar"><div class="strength-fill" id="sf"></div></div>
+              <div class="strength-label" id="sl"></div>
+            </div>
+            <div class="field-error" id="fe-su-pw">Password must be at least 8 characters.</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Referral Code <small style="color:rgba(0,245,196,.4)">(optional)</small></label>
+            <div class="input-group">
+              <span class="input-group-text">🎟</span>
+              <input type="text" class="form-control" id="su-ref" placeholder="e.g. VAULT2024" oninput="checkRef()">
+            </div>
+            <div style="font-size:.72rem;margin-top:4px;display:none;color:var(--neon)" id="ref-ok">✓ Valid code! +$5 bonus applied.</div>
+            <div style="font-size:.72rem;margin-top:4px;display:none;color:var(--red)" id="ref-bad">✗ Invalid referral code.</div>
+          </div>
+
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="su-terms" style="border-color:rgba(0,245,196,.3);background:transparent">
+            <label class="form-check-label" for="su-terms" style="font-size:.78rem;color:rgba(180,200,210,.55)">
+              I agree to the
+              <a href="#" style="color:var(--neon)" onclick="openModal('modal-terms');return false">Terms of Service</a> &amp;
+              <a href="#" style="color:var(--neon)" onclick="openModal('modal-privacy');return false">Privacy Policy</a>
+            </label>
+            <div class="field-error" id="fe-su-terms">You must agree to the terms to continue.</div>
+          </div>
+
+          <button class="btn-neon mb-2" id="btn-signup" onclick="doSignup()">
+            <span class="btn-text">🚀 &nbsp;CREATE FREE ACCOUNT</span>
+            <div class="spinner-border spinner-border-sm" role="status"></div>
+          </button>
+          <p style="text-align:center;font-size:.74rem;color:rgba(180,200,210,.3);margin-top:.4rem">No credit card required · Instant access</p>
+
+          <div class="or-divider">or sign up with</div>
+          <div class="row g-2">
+            <div class="col-4"><button class="btn-social w-100" onclick="socialAuth('Google')"><svg width="15" height="15" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Google</button></div>
+            <div class="col-4"><button class="btn-social w-100" onclick="socialAuth('Facebook')"><svg width="15" height="15" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg> Facebook</button></div>
+            <div class="col-4"><button class="btn-social w-100" onclick="socialAuth('X')"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> X</button></div>
+          </div>
+        </div>
+
+        <!-- LOGIN PANEL -->
+        <div class="form-panel" id="panel-login">
+          <div class="mb-3">
+            <label class="form-label">Email Address</label>
+            <div class="input-group">
+              <span class="input-group-text">✉</span>
+              <input type="email" class="form-control" id="li-email" placeholder="satoshi@crypto.com" oninput="lv(this,'email')">
+            </div>
+            <div class="field-error" id="fe-li-email">Please enter a valid email address.</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <div class="input-group position-relative">
+              <span class="input-group-text">🔒</span>
+              <input type="password" class="form-control" id="li-pw" placeholder="Enter your password" oninput="lv(this,'req')">
+              <button class="pw-toggle" type="button" onclick="togglePw('li-pw',this)">👁</button>
+            </div>
+            <div class="field-error" id="fe-li-pw">Password is required.</div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="form-check mb-0">
+              <input class="form-check-input" type="checkbox" id="li-remember" style="border-color:rgba(0,245,196,.3);background:transparent">
+              <label class="form-check-label" for="li-remember" style="font-size:.78rem;color:rgba(180,200,210,.55)">Remember me</label>
+            </div>
+            <a href="#" style="font-size:.78rem;color:var(--neon);text-decoration:none" onclick="showForgot();return false">Forgot password?</a>
+          </div>
+
+          <button class="btn-neon mb-3" id="btn-login" onclick="doLogin()">
+            <span class="btn-text">🔓 &nbsp;SIGN IN</span>
+            <div class="spinner-border spinner-border-sm" role="status"></div>
+          </button>
+
+          <div class="or-divider">or continue with</div>
+          <div class="row g-2">
+            <div class="col-4"><button class="btn-social w-100" onclick="socialAuth('Google')"><svg width="15" height="15" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Google</button></div>
+            <div class="col-4"><button class="btn-social w-100" onclick="socialAuth('Facebook')"><svg width="15" height="15" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg> Facebook</button></div>
+            <div class="col-4"><button class="btn-social w-100" onclick="socialAuth('X')"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> X</button></div>
+          </div>
+        </div>
+
+        <div class="footer-link" id="auth-footer">
+          Already have an account? <a href="#" onclick="switchTab('login');return false">Sign In →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ FORGOT PAGE ═══════════════ -->
+<div class="page" id="page-forgot">
+  <div class="forgot-card">
+    <button class="back-link" onclick="showPage('page-auth')">← Back to login</button>
+    <div class="card-eyebrow">🔑 Password Recovery</div>
+    <h2 style="font-family:'Orbitron',monospace;color:#fff;font-size:1.3rem;margin-bottom:.3rem">Reset Password</h2>
+    <p class="sub-note">Enter your email and we'll send a reset link instantly.</p>
+
+    <div id="forgot-form">
+      <div class="mb-3">
+        <label class="form-label">Email Address</label>
+        <div class="input-group">
+          <span class="input-group-text">✉</span>
+          <input type="email" class="form-control" id="forgot-email" placeholder="satoshi@crypto.com" oninput="lv(this,'email')">
+        </div>
+        <div class="field-error" id="fe-forgot">Please enter a valid email.</div>
+      </div>
+      <button class="btn-neon" id="btn-forgot" onclick="doForgot()">
+        <span class="btn-text">📧 &nbsp;SEND RESET LINK</span>
+        <div class="spinner-border spinner-border-sm" role="status"></div>
+      </button>
+    </div>
+
+    <div id="forgot-success" style="display:none;text-align:center;padding:10px 0">
+      <div style="font-size:3rem;margin-bottom:1rem">📬</div>
+      <h4 style="font-family:'Orbitron',monospace;color:var(--neon);margin-bottom:.5rem">Check Your Inbox!</h4>
+      <p style="font-size:.85rem;color:rgba(180,200,210,.6)">Reset link sent to <strong id="forgot-sent-to" style="color:#fff"></strong>. Expires in 15 mins.</p>
+      <button class="btn-neon mt-3" onclick="showPage('page-auth')"><span class="btn-text">← Back to Sign In</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DASHBOARD PAGE ═══════════════ -->
+<div class="page" id="page-dashboard">
+  <div class="dashboard-wrap">
+    <div class="dash-header">
+      <div class="dash-logo">CRYPTO<span>VAULT</span></div>
+      <div class="dash-user">
+        <div class="dash-avatar" id="userAvatar" title="Profile" onclick="toast('Profile settings coming soon! ⚙️','info')">SN</div>
+        <span style="font-size:.82rem;color:rgba(180,200,210,.6)" id="userGreet">Welcome back!</span>
+        <button class="btn-logout" onclick="doLogout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="dash-grid">
+      <div class="dash-card" onclick="toast('Total portfolio value: $1,234.56 USD 📊','info')">
+        <div class="dash-card-label">Total Balance</div>
+        <div class="dash-card-value">$1,234<span class="unit">USD</span></div>
+        <div class="dash-card-change up">↑ +2.4% today</div>
+      </div>
+      <div class="dash-card" onclick="toast('0.01823 BTC ≈ $1,234.56 at current price 📈','info')">
+        <div class="dash-card-label">Bitcoin</div>
+        <div class="dash-card-value">0.0182<span class="unit">BTC</span></div>
+        <div class="dash-card-change up">↑ +1.8%</div>
+      </div>
+      <div class="dash-card" onclick="toast('0.412 ETH ≈ $892.00 at current price 📈','info')">
+        <div class="dash-card-label">Ethereum</div>
+        <div class="dash-card-value">0.412<span class="unit">ETH</span></div>
+        <div class="dash-card-change up">↑ +3.1%</div>
+      </div>
+      <div class="dash-card" onclick="toast('3 friends referred! Keep sharing to earn more 👥','success')">
+        <div class="dash-card-label">Referral Earnings</div>
+        <div class="dash-card-value">$48<span class="unit">USD</span></div>
+        <div class="dash-card-change gold">🏆 3 referrals</div>
+      </div>
+    </div>
+
+    <div class="claim-section">
+      <div class="claim-info">
+        <h4>🎁 Daily Faucet Reward</h4>
+        <p>Claim your free crypto every 24 hours. Today's reward: <strong style="color:var(--gold)">$8.40 in BTC</strong></p>
+      </div>
+      <button class="btn-claim" id="claimBtn" onclick="doClaim()">⚡ CLAIM NOW</button>
+    </div>
+
+    <div class="tx-table">
+      <div class="tx-header"><h5>Recent Transactions</h5></div>
+      <div class="tx-row" onclick="toast('Daily Faucet Reward: +$8.40 BTC — Today 09:14 AM ✅','success')">
+        <div class="tx-icon">🎁</div>
+        <div class="tx-desc"><div class="tx-name">Daily Faucet Reward</div><div class="tx-time">Today, 09:14 AM</div></div>
+        <div class="tx-amount pos">+$8.40</div>
+      </div>
+      <div class="tx-row" onclick="toast('Referral Bonus from user_a7k3** — +$12.00 👥','success')">
+        <div class="tx-icon">👥</div>
+        <div class="tx-desc"><div class="tx-name">Referral Bonus</div><div class="tx-time">Yesterday, 3:22 PM</div></div>
+        <div class="tx-amount pos">+$12.00</div>
+      </div>
+      <div class="tx-row" onclick="toast('Welcome bonus credited on account creation 🚀','success')">
+        <div class="tx-icon">🚀</div>
+        <div class="tx-desc"><div class="tx-name">Signup Bonus</div><div class="tx-time">Apr 12, 10:00 AM</div></div>
+        <div class="tx-amount pos">+$10.00</div>
+      </div>
+      <div class="tx-row" onclick="toast('Withdrawal of $50.00 to external wallet — Processed 💸','info')">
+        <div class="tx-icon">💸</div>
+        <div class="tx-desc"><div class="tx-name">Withdrawal to Wallet</div><div class="tx-time">Apr 10, 6:45 PM</div></div>
+        <div class="tx-amount neg">-$50.00</div>
+      </div>
+    </div>
+
+    <div class="refer-box">
+      <div style="flex:1">
+        <div style="font-size:.8rem;color:rgba(180,200,210,.5);margin-bottom:.3rem">🎟 Your Referral Code</div>
+        <div style="font-size:.82rem;color:rgba(180,200,210,.6)">Share &amp; earn <strong style="color:var(--gold)">20%</strong> of every friend's rewards</div>
+      </div>
+      <div class="refer-code" id="referCode" onclick="copyRef()">VAULT-SN42</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODALS ═══════════════ -->
+<div class="modal-overlay" id="modal-terms" onclick="if(event.target===this)closeModal(this)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal(document.getElementById('modal-terms'))">✕</button>
+    <h3>Terms of Service</h3>
+    <p>By creating an account, you agree to use CryptoVault in compliance with all applicable laws. You must be 18 years or older to register.</p>
+    <p>CryptoVault reserves the right to suspend accounts violating these terms. All rewards are subject to identity verification before withdrawal.</p>
+    <p>Daily faucet rewards are for verified accounts only. Referral bonuses are processed within 24 hours of a successful referral signup and first claim.</p>
+    <p>We reserve the right to modify reward amounts at any time with 48 hours notice via email.</p>
+    <button class="btn-neon mt-2" onclick="acceptTerms()"><span class="btn-text">✓ &nbsp;I Accept Terms</span></button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-privacy" onclick="if(event.target===this)closeModal(this)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal(document.getElementById('modal-privacy'))">✕</button>
+    <h3>Privacy Policy</h3>
+    <p>We collect only the data necessary to operate CryptoVault: your name, email address, and wallet addresses you provide.</p>
+    <p>We never sell your personal data to third parties. Your wallet activity is end-to-end encrypted and only accessible by you.</p>
+    <p>We use industry-standard 256-bit AES encryption for all stored data. Passwords are hashed using bcrypt and never stored in plain text.</p>
+    <p>You may request deletion of your account and all associated data at any time by contacting support@cryptovault.io.</p>
+    <button class="btn-neon mt-2" onclick="closeModal(document.getElementById('modal-privacy'))"><span class="btn-text">✓ &nbsp;Got It</span></button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* ─── State ─── */
+let currentUser = null, claimed = false;
+
+/* ─── Page routing ─── */
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+function showForgot() {
+  document.getElementById('forgot-form').style.display = '';
+  document.getElementById('forgot-success').style.display = 'none';
+  showPage('page-forgot');
+}
+
+/* ─── Tab switch ─── */
+function switchTab(tab) {
+  ['signup','login'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('panel-'+t).classList.toggle('active', t===tab);
+  });
+  document.getElementById('auth-footer').innerHTML = tab === 'signup'
+    ? `Already have an account? <a href="#" onclick="switchTab('login');return false">Sign In →</a>`
+    : `Don't have an account? <a href="#" onclick="switchTab('signup');return false">Get free crypto →</a>`;
+}
+
+/* ─── Live validation ─── */
+function isEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+function lv(el, rule) {
+  let valid = false;
+  if (rule==='name')  valid = el.value.trim().length >= 2;
+  if (rule==='email') valid = isEmail(el.value.trim());
+  if (rule==='pw')    valid = el.value.length >= 8;
+  if (rule==='req')   valid = el.value.length > 0;
+  el.classList.toggle('is-valid', valid);
+  el.classList.toggle('is-invalid', !valid);
+  const errId = 'fe-' + el.id.replace(/-/g, '-').replace('su-','su-').replace('li-','li-');
+  // map field id to error id
+  const errMap = {'su-name':'fe-su-name','su-email':'fe-su-email','su-pw':'fe-su-pw','li-email':'fe-li-email','li-pw':'fe-li-pw','forgot-email':'fe-forgot'};
+  const errEl = document.getElementById(errMap[el.id]);
+  if (errEl) errEl.style.display = valid ? 'none' : 'block';
+  return valid;
+}
+
+/* ─── Password strength ─── */
+function pwStrength(v) {
+  const sm = document.getElementById('sm'), sf = document.getElementById('sf'), sl = document.getElementById('sl');
+  if (!v) { sm.style.display='none'; return; }
+  sm.style.display = 'block';
+  let s = 0;
+  if (v.length >= 8) s++;
+  if (/[A-Z]/.test(v)) s++;
+  if (/[0-9]/.test(v)) s++;
+  if (/[^A-Za-z0-9]/.test(v)) s++;
+  const m = [{w:'25%',c:'#ff4d6d',t:'Weak'},{w:'50%',c:'#f5c518',t:'Fair'},{w:'75%',c:'#00c4a0',t:'Good'},{w:'100%',c:'#00f5c4',t:'Strong 💪'}];
+  const d = m[Math.max(0,s-1)];
+  sf.style.width=d.w; sf.style.background=d.c; sl.textContent='Strength: '+d.t; sl.style.color=d.c;
+}
+
+/* ─── Referral code check ─── */
+function checkRef() {
+  const v = document.getElementById('su-ref').value.trim().toUpperCase();
+  const ok = document.getElementById('ref-ok'), bad = document.getElementById('ref-bad');
+  const valid = ['VAULT2024','FREE10','SATOSHI','CRYPTO25'].includes(v);
+  ok.style.display  = v && valid  ? 'block' : 'none';
+  bad.style.display = v && !valid ? 'block' : 'none';
+}
+
+/* ─── Password toggle ─── */
+function togglePw(id, btn) {
+  const el = document.getElementById(id);
+  el.type = el.type === 'password' ? 'text' : 'password';
+  btn.textContent = el.type === 'password' ? '👁' : '🙈';
+}
+
+/* ─── Button loading ─── */
+function setLoading(id, on) {
+  const b = document.getElementById(id);
+  b.classList.toggle('loading', on);
+  b.disabled = on;
+}
+
+/* ─── Signup ─── */
+function doSignup() {
+  const name  = document.getElementById('su-name');
+  const email = document.getElementById('su-email');
+  const pw    = document.getElementById('su-pw');
+  const terms = document.getElementById('su-terms');
+  let ok = true;
+  if (!lv(name,  'name'))  ok = false;
+  if (!lv(email, 'email')) ok = false;
+  if (!lv(pw,    'pw'))    ok = false;
+  if (!terms.checked) {
+    document.getElementById('fe-su-terms').style.display='block'; ok=false;
+  } else {
+    document.getElementById('fe-su-terms').style.display='none';
+  }
+  if (!ok) { toast('Please fix the errors highlighted above.','error'); return; }
+
+  setLoading('btn-signup', true);
+  setTimeout(() => {
+    setLoading('btn-signup', false);
+    const n = name.value.trim();
+    currentUser = { name: n, email: email.value.trim(), initials: n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() };
+    toast(`Welcome, ${n.split(' ')[0]}! 🎉 $10 BTC credited to your wallet!`, 'success');
+    setTimeout(() => loadDashboard(), 900);
+  }, 2000);
+}
+
+/* ─── Login ─── */
+function doLogin() {
+  const email = document.getElementById('li-email');
+  const pw    = document.getElementById('li-pw');
+  let ok = true;
+  if (!lv(email, 'email')) ok=false;
+  if (!lv(pw, 'req'))      ok=false;
+  if (!ok) { toast('Please enter your login credentials.','error'); return; }
+
+  setLoading('btn-login', true);
+  setTimeout(() => {
+    setLoading('btn-login', false);
+    const e = email.value.trim();
+    currentUser = { name: e.split('@')[0], email: e, initials: e.slice(0,2).toUpperCase() };
+    toast('Logged in successfully! Welcome back. ✅', 'success');
+    setTimeout(() => loadDashboard(), 900);
+  }, 1800);
+}
+
+/* ─── Forgot password ─── */
+function doForgot() {
+  const el = document.getElementById('forgot-email');
+  if (!lv(el, 'email')) { toast('Enter a valid email to continue.','error'); return; }
+  setLoading('btn-forgot', true);
+  setTimeout(() => {
+    setLoading('btn-forgot', false);
+    document.getElementById('forgot-sent-to').textContent = el.value.trim();
+    document.getElementById('forgot-form').style.display    = 'none';
+    document.getElementById('forgot-success').style.display = '';
+    toast('Reset link sent! Check your inbox 📧', 'success');
+  }, 1800);
+}
+
+/* ─── Social auth ─── */
+function socialAuth(provider) {
+  toast(`Connecting to ${provider}… ⏳`, 'info');
+  setTimeout(() => {
+    currentUser = { name: `${provider} User`, email:`user@${provider.toLowerCase()}.com`, initials: provider.slice(0,2).toUpperCase() };
+    toast(`${provider} login successful! ✅`, 'success');
+    setTimeout(() => loadDashboard(), 900);
+  }, 1600);
+}
+
+/* ─── Dashboard ─── */
+function loadDashboard() {
+  if (currentUser) {
+    document.getElementById('userAvatar').textContent = currentUser.initials;
+    document.getElementById('userGreet').textContent  = `Hey, ${currentUser.name.split(' ')[0]}! 👋`;
+  }
+  showPage('page-dashboard');
+}
+function doLogout() {
+  toast('Logged out. See you tomorrow for your next reward! 👋', 'info');
+  setTimeout(() => { currentUser=null; claimed=false; showPage('page-auth'); }, 700);
+}
+
+/* ─── Claim ─── */
+function doClaim() {
+  if (claimed) { toast('Already claimed today! Come back in 24 hours ⏰', 'info'); return; }
+  const btn = document.getElementById('claimBtn');
+  btn.disabled=true; btn.textContent='⏳ Processing…';
+  setTimeout(() => {
+    claimed=true;
+    btn.textContent='✅ Claimed!';
+    btn.style.cssText='background:rgba(0,245,196,.15);color:var(--neon);border:1px solid rgba(0,245,196,.3);border-radius:10px;padding:.65rem 1.5rem;cursor:default;font-family:"Orbitron",monospace;font-size:.82rem;font-weight:700;letter-spacing:.06em';
+    toast('🎉 $8.40 in BTC added to your balance!', 'success');
+  }, 1500);
+}
+
+/* ─── Referral copy ─── */
+function copyRef() {
+  const code = document.getElementById('referCode').textContent;
+  navigator.clipboard.writeText(code).catch(()=>{});
+  toast(`Code "${code}" copied to clipboard! 📋`, 'success');
+}
+
+/* ─── Coin badge select ─── */
+function selectCoin(el) {
+  document.querySelectorAll('.coin-badge').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  toast(`${el.dataset.coin} selected as preferred coin 🪙`, 'info');
+}
+
+/* ─── Terms modal accept ─── */
+function acceptTerms() {
+  document.getElementById('su-terms').checked=true;
+  document.getElementById('fe-su-terms').style.display='none';
+  closeModal(document.getElementById('modal-terms'));
+  toast('Terms accepted ✓', 'success');
+}
+
+/* ─── Modals ─── */
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(el) { el.classList.remove('show'); }
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') document.querySelectorAll('.modal-overlay.show').forEach(m=>m.classList.remove('show'));
+});
+
+/* ─── Toast ─── */
+const icons = { success:'✅', error:'❌', info:'💡' };
+function toast(msg, type='info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast-msg ${type}`;
+  t.innerHTML = `<span style="flex-shrink:0">${icons[type]||'💡'}</span><span style="flex:1">${msg}</span><button class="toast-close" onclick="removeToast(this.parentElement)">✕</button>`;
+  c.appendChild(t);
+  setTimeout(() => removeToast(t), 4500);
+}
+function removeToast(t) {
+  if (!t || t.classList.contains('removing')) return;
+  t.classList.add('removing');
+  setTimeout(() => t.remove(), 300);
+}
+
+/* ─── Live ticker ─── */
+const ticks = [
+  ['$12.40 in BTC','user_x9f2**','2s ago'], ['$7.80 in ETH','user_k3m1**','5s ago'],
+  ['$22.00 in SOL','user_p9z4**','12s ago'],['$5.50 in USDT','user_r2w8**','18s ago'],
+  ['$18.90 in BTC','user_h7q3**','31s ago'],['$3.10 in ETH','user_c5n9**','44s ago'],
+  ['$9.00 in SOL','user_m4p1**','1m ago'],  ['$15.20 in BTC','user_z6w2**','1m ago'],
+];
+let ti=0;
+setInterval(()=>{
+  ti=(ti+1)%ticks.length;
+  const [a,u,t]=ticks[ti];
+  document.getElementById('tickerText').innerHTML=`<strong>${a}</strong> claimed by <strong>${u}</strong> · ${t}`;
+}, 3500);
+</script>
+</body>
+</html>
